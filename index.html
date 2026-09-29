@@ -8,7 +8,29 @@
     <meta name="description" content="Portfolios d'Aristide François, architecte DE et dessinateur.">
 
     <style>
-        body {
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            background: #fff;
+        }
+
+        /* Fond ordinateur */
+        .bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: url("fond.jpg") center / cover no-repeat;
+        }
+
+        /* Fond smartphone */
+        @media (max-width: 700px) {
+            .bg {
+                background-image: url("fond-mobile.jpg");
+            }
+        }
+
+        .page {
             font-family: Arial, sans-serif;
             max-width: 900px;
             margin: 0 auto;
@@ -25,7 +47,6 @@
 
         .subtitle {
             margin-bottom: 60px;
-            color: #666;
         }
 
         .portfolio {
@@ -34,6 +55,7 @@
             margin: 20px auto;
             padding: 20px;
             border: 1px solid #222;
+            background: rgba(255, 255, 255, 0.6);
             text-decoration: none;
             color: #222;
             transition: background 0.2s, color 0.2s;
@@ -41,7 +63,7 @@
 
         .portfolio:hover {
             background: #222;
-            color: white;
+            color: #fff;
         }
 
         .contact {
@@ -56,24 +78,30 @@
 
 <body>
 
-    <h1>Aristide FRANÇOIS</h1>
+    <div class="bg"></div>
 
-    <p class="subtitle">Architecte DE &amp; Dessinateur</p>
+    <div class="page">
 
-    <a class="portfolio" href="PORTFOLIO_ARCHITECTURE_Aristide%20Fran%C3%A7ois.pdf">
-        Portfolio Architecture
-    </a>
+        <h1>Aristide FRANÇOIS</h1>
 
-    <a class="portfolio" href="PORTFOLIO_DESSIN_Aristide%20Fran%C3%A7ois.pdf">
-        Portfolio Dessin
-    </a>
+        <p class="subtitle">Architecte DE &amp; Dessinateur</p>
 
-    <div class="contact">
-        <p>aristidefrancois.ade@gmail.com</p>
-        <p>
-            <a href="https://www.instagram.com/aristide_francois_dessins/">Instagram</a> ·
-            <a href="https://www.linkedin.com/in/aristide-fran%C3%A7ois-b62288417/">LinkedIn</a>
-        </p>
+        <a class="portfolio" href="PORTFOLIO_ARCHITECTURE_Aristide%20Fran%C3%A7ois.pdf">
+            Portfolio Architecture
+        </a>
+
+        <a class="portfolio" href="PORTFOLIO_DESSIN_Aristide%20Fran%C3%A7ois.pdf">
+            Portfolio Dessin
+        </a>
+
+        <div class="contact">
+            <p>aristidefrancois.ade@gmail.com</p>
+            <p>
+                <a href="https://www.instagram.com/aristide_francois_dessins/">Instagram</a> ·
+                <a href="www.linkedin.com/in/aristide-françois-b62288417">LinkedIn</a>
+            </p>
+        </div>
+
     </div>
 
 </body>
