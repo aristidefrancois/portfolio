@@ -9,15 +9,15 @@
 
     <style>
         html {
-        background: #fff; /* secours si l'image ne charge pas */
-    }
+            background: #fff; /* secours si l'image ne charge pas */
+        }
 
-    body {
-        margin: 0;
-        padding: 0;
-        min-height: 100vh;
-        background: transparent;
-    }
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: transparent;
+        }
 
         /* Fond ordinateur */
         .bg {
@@ -43,6 +43,15 @@
             color: #222;
         }
 
+        /* Bande de surlignage derrière le texte */
+        .hl {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 4px 12px;
+            -webkit-box-decoration-break: clone;
+            box-decoration-break: clone;
+            line-height: 1.8;
+        }
+
         h1 {
             font-size: 42px;
             margin-bottom: 10px;
@@ -53,22 +62,22 @@
             margin-bottom: 60px;
         }
 
-     .portfolio {
-    display: block;
-    max-width: 400px;
-    margin: 20px auto;
-    padding: 20px;
-    border: 1px solid #222;
-    background: transparent;
-    text-decoration: none;
-    color: #222;
-    transition: background 0.2s, color 0.2s;
-}
+        .portfolio {
+            display: block;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #222;
+            background: transparent;
+            text-decoration: none;
+            color: #222;
+            transition: color 0.2s;
+        }
 
-        .portfolio:hover {
-    background: transparent;
-    color: #fff;
-}
+        .portfolio:hover .hl {
+            background: #222;
+            color: #fff;
+        }
 
         .contact {
             margin-top: 70px;
@@ -86,23 +95,25 @@
 
     <div class="page">
 
-        <h1>Aristide FRANÇOIS</h1>
+        <h1><span class="hl">Aristide FRANÇOIS</span></h1>
 
-        <p class="subtitle">Architecte DE &amp; Dessinateur</p>
+        <p class="subtitle"><span class="hl">Architecte DE &amp; Dessinateur</span></p>
 
         <a class="portfolio" href="PORTFOLIO_ARCHITECTURE_Aristide%20Fran%C3%A7ois.pdf">
-            Portfolio Architecture
+            <span class="hl">Portfolio Architecture</span>
         </a>
 
         <a class="portfolio" href="PORTFOLIO_DESSIN_Aristide%20Fran%C3%A7ois.pdf">
-            Portfolio Dessin
+            <span class="hl">Portfolio Dessin</span>
         </a>
 
         <div class="contact">
-            <p>aristidefrancois.ade@gmail.com</p>
+            <p><span class="hl">aristidefrancois.ade@gmail.com</span></p>
             <p>
-                <a href="https://www.instagram.com/aristide_francois_dessins/">Instagram</a> ·
-                <a href="https://www.linkedin.com/in/aristide-fran%C3%A7ois-b62288417">LinkedIn</a>
+                <span class="hl">
+                    <a href="https://www.instagram.com/aristide_francois_dessins/">Instagram</a> ·
+                    <a href="https://www.linkedin.com/in/aristide-fran%C3%A7ois-b62288417">LinkedIn</a>
+                </span>
             </p>
         </div>
 
