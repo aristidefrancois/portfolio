@@ -34,13 +34,20 @@
             }
         }
 
+        /* Contenu aligné en haut à gauche */
         .page {
             font-family: Arial, sans-serif;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 80px 30px;
-            text-align: center;
+            max-width: none;
+            margin: 0;
+            padding: 40px 30px;
+            text-align: left;
             color: #222;
+        }
+
+        @media (max-width: 700px) {
+            .page {
+                padding: 40px 20px;
+            }
         }
 
         /* Bande de surlignage derrière le texte */
@@ -54,37 +61,25 @@
 
         h1 {
             font-size: 42px;
+            margin-top: 0;
             margin-bottom: 10px;
             letter-spacing: 2px;
         }
 
         .subtitle {
-            margin-bottom: 60px;
+            margin-bottom: 30px;
         }
 
-        .portfolio {
-            display: block;
-            max-width: 400px;
-            margin: 20px auto;
-            padding: 20px;
-            border: 1px solid #222;
-            background: transparent;
-            text-decoration: none;
+        .page a {
             color: #222;
-            transition: color 0.2s;
         }
 
-        .portfolio:hover .hl {
-            background: #222;
-            color: #fff;
+        .portfolios {
+            margin-bottom: 40px;
         }
 
         .contact {
-            margin-top: 70px;
-        }
-
-        .contact a {
-            color: #222;
+            margin-top: 40px;
         }
     </style>
 </head>
@@ -99,13 +94,18 @@
 
         <p class="subtitle"><span class="hl">Architecte DE &amp; Dessinateur</span></p>
 
-        <a class="portfolio" href="PORTFOLIO_ARCHITECTURE_Aristide%20Fran%C3%A7ois.pdf">
-            <span class="hl">Portfolio Architecture</span>
-        </a>
-
-        <a class="portfolio" href="PORTFOLIO_DESSIN_Aristide%20Fran%C3%A7ois.pdf">
-            <span class="hl">Portfolio Dessin</span>
-        </a>
+        <div class="portfolios">
+            <p>
+                <span class="hl">
+                    <a href="PORTFOLIO_ARCHITECTURE_Aristide%20Fran%C3%A7ois.pdf" target="_blank" rel="noopener">Portfolio Architecture</a> (PDF)
+                </span>
+            </p>
+            <p>
+                <span class="hl">
+                    <a href="PORTFOLIO_DESSIN_Aristide%20Fran%C3%A7ois.pdf" target="_blank" rel="noopener">Portfolio Dessin</a> (PDF)
+                </span>
+            </p>
+        </div>
 
         <div class="contact">
             <p><span class="hl">aristidefrancois.ade@gmail.com</span></p>
