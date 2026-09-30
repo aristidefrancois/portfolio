@@ -17,7 +17,7 @@
             padding: 0;
             min-height: 100vh;
             background: transparent;
-            cursor: pointer; /* indique que l'image est cliquable */
+            cursor: pointer; /* le fond est cliquable */
         }
 
         /* Diaporama de fond */
@@ -34,7 +34,7 @@
             background-position: center;
             background-repeat: no-repeat;
             opacity: 0;
-            transition: opacity 1.5s ease; /* durée du fondu */
+            transition: opacity 1.5s ease;
         }
 
         .bg .slide.active {
@@ -54,7 +54,7 @@
             cursor: auto;
         }
 
-        /* Version mobile : carte centrée et transparente à 10 % */
+        /* Version mobile : carte centrée, blanche à 80 % */
         @media (max-width: 700px) {
             body {
                 display: flex;
@@ -67,7 +67,7 @@
             .card {
                 margin: 20px;
                 padding: 22px 24px;
-                background: rgba(255, 255, 255, 0.90);
+                background: rgba(255, 255, 255, 0.8);
             }
         }
 
@@ -94,6 +94,50 @@
 
         .card a {
             color: #222;
+            cursor: pointer;
+        }
+
+        /* Règle parallèle et équerre (ordinateur uniquement) */
+        .regle,
+        .equerre {
+            display: none;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .regle,
+            .equerre {
+                display: block;
+                position: fixed;
+                top: 0;
+                left: 0;
+                pointer-events: none;   /* les clics passent à travers */
+                opacity: 0;             /* invisible jusqu'au premier mouvement */
+                will-change: transform;
+            }
+
+            /* Règle : pleine largeur, tuile répétée sans étirement */
+            .regle {
+                width: 100vw;
+                height: 160px;
+                background: url("regle.png") repeat-x left top;
+                z-index: 100;
+            }
+
+            /* Équerre : pointe du crayon (800, 850 dans l'image) = position de la souris */
+            .equerre {
+                width: 1200px;
+                height: 900px;
+                margin: -850px 0 0 -800px;   /* -Y puis -X de la pointe */
+                background: url("equerre.png") no-repeat;
+                z-index: 101;
+            }
+
+            /* Le curseur n'est masqué que si les deux images sont chargées */
+            .has-rule body,
+            .has-rule .card,
+            .has-rule .card a {
+                cursor: none;
+            }
         }
     </style>
 </head>
@@ -104,6 +148,9 @@
         <div class="slide"></div>
         <div class="slide"></div>
     </div>
+
+    <div class="regle"></div>
+    <div class="equerre"></div>
 
     <div class="card">
 
@@ -126,8 +173,9 @@
     </div>
 
     <script>
+        /* ---------- Diaporama ---------- */
         const TOTAL = 10;     // nombre d'images
-        const DELAY = 6000;   // temps entre deux images (en millisecondes)
+        const DELAY = 6000;   // temps entre deux images (millisecondes)
 
         const mobile = window.matchMedia("(max-width: 700px)");
         const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -145,7 +193,7 @@
             const id = ++request;
             const img = new Image();
             img.onload = function () {
-                if (id !== request) return; // une image plus récente a été demandée
+                if (id !== request) return;
                 const next = layers[1 - front];
                 next.style.backgroundImage = 'url("' + src(i) + '")';
                 next.classList.add("active");
@@ -170,18 +218,50 @@
         show(1);
         startTimer();
 
-        // Clic sur l'image (hors carte) : image suivante
+        // Clic sur le fond (hors carte) : image suivante
         document.addEventListener("click", function (e) {
             if (e.target.closest(".card")) return;
             nextImage();
-            startTimer(); // relance le compte à rebours après un clic
+            startTimer();
         });
 
-        // Passage téléphone / ordinateur (rotation, redimensionnement)
+        // Passage téléphone / ordinateur
         mobile.addEventListener("change", function () {
             index = 1;
             show(1);
         });
+
+        /* ---------- Règle parallèle et équerre ---------- */
+        const regle = document.querySelector(".regle");
+        const equerre = document.querySelector(".equerre");
+        const pointeurPrecis = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+        if (pointeurPrecis) {
+            // Masque le curseur seulement si les deux PNG sont bien chargés
+            let charges = 0;
+            ["regle.png", "equerre.png"].forEach(function (nom) {
+                const test = new Image();
+                test.onload = function () {
+                    charges++;
+                    if (charges === 2) {
+                        document.documentElement.classList.add("has-rule");
+                    }
+                };
+                test.src = nom;
+            });
+
+            document.addEventListener("mousemove", function (e) {
+                regle.style.transform = "translateY(" + e.clientY + "px)";
+                equerre.style.transform = "translate(" + e.clientX + "px," + e.clientY + "px)";
+                regle.style.opacity = 1;
+                equerre.style.opacity = 1;
+            });
+
+            document.documentElement.addEventListener("mouseleave", function () {
+                regle.style.opacity = 0;
+                equerre.style.opacity = 0;
+            });
+        }
     </script>
 
 </body>
