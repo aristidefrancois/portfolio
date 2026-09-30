@@ -34,52 +34,48 @@
             }
         }
 
-        /* Contenu aligné en haut à gauche */
-        .page {
-            font-family: Arial, sans-serif;
-            max-width: none;
-            margin: 0;
-            padding: 40px 30px;
-            text-align: left;
+        /* Carte de visite, en haut à gauche */
+        .card {
+            display: inline-block;
+            margin: 30px;
+            padding: 28px 36px;
+            background: #fff;
             color: #222;
+            font-family: Arial, sans-serif;
+            text-align: left;
+            line-height: 1.4;
         }
 
         @media (max-width: 700px) {
-            .page {
-                padding: 40px 20px;
+            .card {
+                margin: 20px;
+                padding: 22px 24px;
             }
         }
 
-        /* Bande de surlignage derrière le texte */
-        .hl {
-            background: rgba(255, 255, 255, 0.85);
-            padding: 4px 12px;
-            -webkit-box-decoration-break: clone;
-            box-decoration-break: clone;
-            line-height: 1.8;
+        .card h1 {
+            margin: 0 0 4px 0;
+            font-size: 28px;
+            letter-spacing: 1px;
         }
 
-        h1 {
-            font-size: 42px;
-            margin-top: 0;
-            margin-bottom: 10px;
-            letter-spacing: 2px;
+        .card .subtitle {
+            margin: 0 0 16px 0;
+            color: #555;
         }
 
-        .subtitle {
-            margin-bottom: 30px;
+        .card p {
+            margin: 0 0 4px 0;
         }
 
-        .page a {
+        .card .separator {
+            border: 0;
+            border-top: 1px solid #222;
+            margin: 16px 0;
+        }
+
+        .card a {
             color: #222;
-        }
-
-        .portfolios {
-            margin-bottom: 40px;
-        }
-
-        .contact {
-            margin-top: 40px;
         }
     </style>
 </head>
@@ -88,34 +84,23 @@
 
     <div class="bg"></div>
 
-    <div class="page">
+    <div class="card">
 
-        <h1><span class="hl">Aristide FRANÇOIS</span></h1>
+        <h1>Aristide FRANÇOIS</h1>
+        <p class="subtitle">Architecte DE &amp; Dessinateur</p>
 
-        <p class="subtitle"><span class="hl">Architecte DE &amp; Dessinateur</span></p>
+        <hr class="separator">
 
-        <div class="portfolios">
-            <p>
-                <span class="hl">
-                    <a href="PORTFOLIO_ARCHITECTURE_Aristide%20Fran%C3%A7ois.pdf" target="_blank" rel="noopener">Portfolio Architecture</a> (PDF)
-                </span>
-            </p>
-            <p>
-                <span class="hl">
-                    <a href="PORTFOLIO_DESSIN_Aristide%20Fran%C3%A7ois.pdf" target="_blank" rel="noopener">Portfolio Dessin</a> (PDF)
-                </span>
-            </p>
-        </div>
+        <p><a href="PORTFOLIO_ARCHITECTURE_Aristide%20Fran%C3%A7ois.pdf" target="_blank" rel="noopener">Portfolio Architecture</a> (PDF)</p>
+        <p><a href="PORTFOLIO_DESSIN_Aristide%20Fran%C3%A7ois.pdf" target="_blank" rel="noopener">Portfolio Dessin</a> (PDF)</p>
 
-        <div class="contact">
-            <p><span class="hl">aristidefrancois.ade@gmail.com</span></p>
-            <p>
-                <span class="hl">
-                    <a href="https://www.instagram.com/aristide_francois_dessins/">Instagram</a> ·
-                    <a href="https://www.linkedin.com/in/aristide-fran%C3%A7ois-b62288417">LinkedIn</a>
-                </span>
-            </p>
-        </div>
+        <hr class="separator">
+
+        <p>aristidefrancois.ade@gmail.com</p>
+        <p>
+            <a href="https://www.instagram.com/aristide_francois_dessins/">Instagram</a> ·
+            <a href="https://www.linkedin.com/in/aristide-fran%C3%A7ois-b62288417">LinkedIn</a>
+        </p>
 
     </div>
 
