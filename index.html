@@ -17,6 +17,7 @@
             padding: 0;
             min-height: 100vh;
             background: transparent;
+            cursor: pointer; /* indique que l'image est cliquable */
         }
 
         /* Diaporama de fond */
@@ -50,9 +51,10 @@
             font-family: Arial, sans-serif;
             text-align: left;
             line-height: 1.4;
+            cursor: auto;
         }
 
-        /* Version mobile : carte centrée */
+        /* Version mobile : carte centrée et transparente à 50 % */
         @media (max-width: 700px) {
             body {
                 display: flex;
@@ -65,6 +67,7 @@
             .card {
                 margin: 20px;
                 padding: 22px 24px;
+                background: rgba(255, 255, 255, 0.5);
             }
         }
 
@@ -109,8 +112,8 @@
 
         <hr class="separator">
 
-        <p><a href="PORTFOLIO_ARCHITECTURE_Aristide_Francois.pdf" target="_blank" rel="noopener">Portfolio Architecture</a> (PDF)</p>
-        <p><a href="PORTFOLIO_DESSIN_Aristide_Francois.pdf" target="_blank" rel="noopener">Portfolio Dessin</a> (PDF)</p>
+        <p><a href="PORTFOLIO_ARCHITECTURE_Aristide%20Fran%C3%A7ois.pdf" target="_blank" rel="noopener">Portfolio Architecture</a> (PDF)</p>
+        <p><a href="PORTFOLIO_DESSIN_Aristide%20Fran%C3%A7ois.pdf" target="_blank" rel="noopener">Portfolio Dessin</a> (PDF)</p>
 
         <hr class="separator">
 
@@ -127,17 +130,22 @@
         const DELAY = 6000;   // temps entre deux images (en millisecondes)
 
         const mobile = window.matchMedia("(max-width: 700px)");
+        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const layers = document.querySelectorAll(".bg .slide");
         let index = 1;
         let front = 0;
+        let request = 0;
+        let timer;
 
         function src(i) {
             return (mobile.matches ? "fond-mobile-" : "fond-pc-") + i + ".jpg";
         }
 
         function show(i) {
+            const id = ++request;
             const img = new Image();
             img.onload = function () {
+                if (id !== request) return; // une image plus récente a été demandée
                 const next = layers[1 - front];
                 next.style.backgroundImage = 'url("' + src(i) + '")';
                 next.classList.add("active");
@@ -147,17 +155,29 @@
             img.src = src(i);
         }
 
-        show(1);
-
-        // Pas de défilement automatique si l'utilisateur a demandé moins d'animations
-        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            setInterval(function () {
-                index = (index % TOTAL) + 1;
-                show(index);
-            }, DELAY);
+        function nextImage() {
+            index = (index % TOTAL) + 1;
+            show(index);
         }
 
-        // Si on passe de téléphone à ordinateur (rotation, redimensionnement)
+        function startTimer() {
+            clearInterval(timer);
+            if (!reduced) {
+                timer = setInterval(nextImage, DELAY);
+            }
+        }
+
+        show(1);
+        startTimer();
+
+        // Clic sur l'image (hors carte) : image suivante
+        document.addEventListener("click", function (e) {
+            if (e.target.closest(".card")) return;
+            nextImage();
+            startTimer(); // relance le compte à rebours après un clic
+        });
+
+        // Passage téléphone / ordinateur (rotation, redimensionnement)
         mobile.addEventListener("change", function () {
             index = 1;
             show(1);
