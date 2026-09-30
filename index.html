@@ -19,19 +19,25 @@
             background: transparent;
         }
 
-        /* Fond ordinateur */
+        /* Diaporama de fond */
         .bg {
             position: fixed;
             inset: 0;
             z-index: -1;
-            background: url("fond.jpg") center / cover no-repeat;
         }
 
-        /* Fond smartphone */
-        @media (max-width: 700px) {
-            .bg {
-                background-image: url("fond-mobile.jpg");
-            }
+        .bg .slide {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: opacity 1.5s ease; /* durée du fondu */
+        }
+
+        .bg .slide.active {
+            opacity: 1;
         }
 
         /* Carte de visite, en haut à gauche */
@@ -46,20 +52,21 @@
             line-height: 1.4;
         }
 
+        /* Version mobile : carte centrée */
         @media (max-width: 700px) {
-    body {
-        display: flex;
-        align-items: center;      /* centre verticalement */
-        justify-content: center;  /* centre horizontalement */
-        min-height: 100vh;
-        min-height: 100dvh;       /* tient compte de la barre d'adresse du téléphone */
-    }
+            body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                min-height: 100dvh;
+            }
 
-    .card {
-        margin: 20px;
-        padding: 22px 24px;
-    }
-}
+            .card {
+                margin: 20px;
+                padding: 22px 24px;
+            }
+        }
 
         .card h1 {
             margin: 0 0 4px 0;
@@ -90,7 +97,10 @@
 
 <body>
 
-    <div class="bg"></div>
+    <div class="bg">
+        <div class="slide"></div>
+        <div class="slide"></div>
+    </div>
 
     <div class="card">
 
@@ -111,6 +121,48 @@
         </p>
 
     </div>
+
+    <script>
+        const TOTAL = 10;     // nombre d'images
+        const DELAY = 6000;   // temps entre deux images (en millisecondes)
+
+        const mobile = window.matchMedia("(max-width: 700px)");
+        const layers = document.querySelectorAll(".bg .slide");
+        let index = 1;
+        let front = 0;
+
+        function src(i) {
+            return (mobile.matches ? "fond-mobile-" : "fond-pc-") + i + ".jpg";
+        }
+
+        function show(i) {
+            const img = new Image();
+            img.onload = function () {
+                const next = layers[1 - front];
+                next.style.backgroundImage = 'url("' + src(i) + '")';
+                next.classList.add("active");
+                layers[front].classList.remove("active");
+                front = 1 - front;
+            };
+            img.src = src(i);
+        }
+
+        show(1);
+
+        // Pas de défilement automatique si l'utilisateur a demandé moins d'animations
+        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            setInterval(function () {
+                index = (index % TOTAL) + 1;
+                show(index);
+            }, DELAY);
+        }
+
+        // Si on passe de téléphone à ordinateur (rotation, redimensionnement)
+        mobile.addEventListener("change", function () {
+            index = 1;
+            show(1);
+        });
+    </script>
 
 </body>
 </html>
