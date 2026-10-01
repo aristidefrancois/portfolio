@@ -9,7 +9,8 @@
 
     <style>
         html {
-            background: #fff; /* secours si l'image ne charge pas */
+            background: #fff;
+            overflow-x: hidden;
         }
 
         body {
@@ -17,31 +18,34 @@
             padding: 0;
             min-height: 100vh;
             background: transparent;
-            cursor: pointer; /* le fond est cliquable */
+            cursor: pointer;
         }
 
-        /* Diaporama de fond */
-        .bg {
+        /* Pile de dessins */
+        .pile {
             position: fixed;
             inset: 0;
             z-index: -1;
+            overflow: hidden;
         }
 
-        .bg .slide {
+        .sheet {
             position: absolute;
             inset: 0;
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            opacity: 0;
-            transition: opacity 1.5s ease;
+            opacity: 0.8;                       /* opacité de chaque dessin */
+            transition: transform 1s cubic-bezier(.5, 0, .3, 1);
+            will-change: transform;
         }
 
-        .bg .slide.active {
-            opacity: 1;
+        /* La feuille du dessus s'en va */
+        .sheet.leave {
+            transform: translateX(-110%) rotate(var(--rot, -3deg));
         }
 
-        /* Carte "papier calque", en haut à gauche */
+        /* Carte "papier calque" */
         .card {
             display: inline-block;
             margin: 30px;
@@ -52,20 +56,17 @@
             line-height: 1.4;
             cursor: auto;
 
-            /* Gris 233 231 232 à 80 % + grain fin de papier */
             background:
                 url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.4  0 0 0 0 0.4  0 0 0 0 0.4  0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
                 rgba(233, 231, 232, 0.8);
 
-            /* Léger flou de ce qui est derrière, comme du calque */
             -webkit-backdrop-filter: blur(4px);
             backdrop-filter: blur(4px);
 
             border: 1px solid rgba(255, 255, 255, 0.55);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
         }
 
-        /* Version mobile : carte centrée */
         @media (max-width: 700px) {
             body {
                 display: flex;
@@ -111,10 +112,7 @@
 
 <body>
 
-    <div class="bg">
-        <div class="slide"></div>
-        <div class="slide"></div>
-    </div>
+    <div class="pile"></div>
 
     <div class="card">
 
@@ -123,8 +121,8 @@
 
         <hr class="separator">
 
-        <p><a href="PORTFOLIO_ARCHITECTURE_Aristide_Francois.pdf" target="_blank" rel="noopener">Portfolio Architecture</a> (PDF)</p>
-        <p><a href="PORTFOLIO_DESSIN_Aristide_Francois.pdf" target="_blank" rel="noopener">Portfolio Dessin</a> (PDF)</p>
+        <p><a href="PORTFOLIO_ARCHITECTURE_Aristide-Francois.pdf" target="_blank" rel="noopener">Portfolio Architecture</a> (PDF)</p>
+        <p><a href="PORTFOLIO_DESSIN_Aristide-Francois.pdf" target="_blank" rel="noopener">Portfolio Dessin</a> (PDF)</p>
 
         <hr class="separator">
 
@@ -137,61 +135,78 @@
     </div>
 
     <script>
-        const TOTAL = 10;     // nombre d'images
-        const DELAY = 6000;   // temps entre deux images (millisecondes)
+        const TOTAL = 10;       // nombre de dessins
+        const DELAY = 6000;     // temps entre deux changements (ms)
+        const DURATION = 1000;  // durée du glissement (ms), identique au CSS
 
         const mobile = window.matchMedia("(max-width: 700px)");
         const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        const layers = document.querySelectorAll(".bg .slide");
-        let index = 1;
-        let front = 0;
-        let request = 0;
+        const pile = document.querySelector(".pile");
+        let order = [];         // du dessous (0) au dessus (dernier)
+        let busy = false;
         let timer;
 
         function src(i) {
             return (mobile.matches ? "fond-mobile-" : "fond-pc-") + i + ".jpg";
         }
 
-        function show(i) {
-            const id = ++request;
-            const img = new Image();
-            img.onload = function () {
-                if (id !== request) return;
-                const next = layers[1 - front];
-                next.style.backgroundImage = 'url("' + src(i) + '")';
-                next.classList.add("active");
-                layers[front].classList.remove("active");
-                front = 1 - front;
-            };
-            img.src = src(i);
+        function applyZ() {
+            order.forEach(function (el, i) { el.style.zIndex = i; });
         }
 
-        function nextImage() {
-            index = (index % TOTAL) + 1;
-            show(index);
+        // Construit la pile : le dessin 1 est au-dessus
+        function build() {
+            pile.innerHTML = "";
+            order = [];
+            busy = false;
+            for (let i = TOTAL; i >= 1; i--) {
+                const el = document.createElement("div");
+                el.className = "sheet";
+                el.style.backgroundImage = 'url("' + src(i) + '")';
+                pile.appendChild(el);
+                order.push(el);
+            }
+            applyZ();
+        }
+
+        function next() {
+            if (busy) return;
+            busy = true;
+            const top = order.pop();
+            top.style.setProperty("--rot", (Math.random() * 6 - 3).toFixed(1) + "deg");
+            top.classList.add("leave");
+
+            setTimeout(function () {
+                // La feuille repart instantanément tout en bas de la pile
+                top.style.transition = "none";
+                top.classList.remove("leave");
+                order.unshift(top);
+                applyZ();
+                void top.offsetWidth;
+                top.style.transition = "";
+                busy = false;
+            }, DURATION);
         }
 
         function startTimer() {
             clearInterval(timer);
-            if (!reduced) {
-                timer = setInterval(nextImage, DELAY);
-            }
+            if (!reduced) timer = setInterval(next, DELAY);
         }
 
-        show(1);
+        build();
         startTimer();
 
-        // Clic sur le fond (hors carte) : image suivante
+        // Clic sur le fond (hors carte) : feuille suivante
         document.addEventListener("click", function (e) {
             if (e.target.closest(".card")) return;
-            nextImage();
+            next();
             startTimer();
         });
 
         // Passage téléphone / ordinateur
         mobile.addEventListener("change", function () {
-            index = 1;
-            show(1);
+            build();
+            startTimer();
         });
     </script>
 
