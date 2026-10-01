@@ -17,7 +17,7 @@
             padding: 0;
             min-height: 100vh;
             background: transparent;
-            cursor: pointer; /* indique que l'image est cliquable */
+            cursor: pointer; /* le fond est cliquable */
         }
 
         /* Diaporama de fond */
@@ -34,27 +34,38 @@
             background-position: center;
             background-repeat: no-repeat;
             opacity: 0;
-            transition: opacity 1.5s ease; /* durée du fondu */
+            transition: opacity 1.5s ease;
         }
 
         .bg .slide.active {
             opacity: 1;
         }
 
-        /* Carte de visite, en haut à gauche */
+        /* Carte "papier calque", en haut à gauche */
         .card {
             display: inline-block;
             margin: 30px;
             padding: 28px 36px;
-            background: #fff;
             color: #222;
             font-family: Arial, sans-serif;
             text-align: left;
             line-height: 1.4;
             cursor: auto;
+
+            /* Gris 233 231 232 à 80 % + grain fin de papier */
+            background:
+                url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.4  0 0 0 0 0.4  0 0 0 0 0.4  0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+                rgba(233, 231, 232, 0.8);
+
+            /* Léger flou de ce qui est derrière, comme du calque */
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
         }
 
-        /* Version mobile : carte centrée et transparente à 10 % */
+        /* Version mobile : carte centrée */
         @media (max-width: 700px) {
             body {
                 display: flex;
@@ -67,7 +78,6 @@
             .card {
                 margin: 20px;
                 padding: 22px 24px;
-                background: rgba(255, 255, 255, 0.90);
             }
         }
 
@@ -88,12 +98,13 @@
 
         .card .separator {
             border: 0;
-            border-top: 1px solid #222;
+            border-top: 1px solid rgba(34, 34, 34, 0.7);
             margin: 16px 0;
         }
 
         .card a {
             color: #222;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -112,8 +123,8 @@
 
         <hr class="separator">
 
-        <p><a href="PORTFOLIO_ARCHITECTURE_Aristide%20Fran%C3%A7ois.pdf" target="_blank" rel="noopener">Portfolio Architecture</a> (PDF)</p>
-        <p><a href="PORTFOLIO_DESSIN_Aristide%20Fran%C3%A7ois.pdf" target="_blank" rel="noopener">Portfolio Dessin</a> (PDF)</p>
+        <p><a href="PORTFOLIO_ARCHITECTURE_Aristide_Francois.pdf" target="_blank" rel="noopener">Portfolio Architecture</a> (PDF)</p>
+        <p><a href="PORTFOLIO_DESSIN_Aristide_Francois.pdf" target="_blank" rel="noopener">Portfolio Dessin</a> (PDF)</p>
 
         <hr class="separator">
 
@@ -127,7 +138,7 @@
 
     <script>
         const TOTAL = 10;     // nombre d'images
-        const DELAY = 6000;   // temps entre deux images (en millisecondes)
+        const DELAY = 6000;   // temps entre deux images (millisecondes)
 
         const mobile = window.matchMedia("(max-width: 700px)");
         const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -145,7 +156,7 @@
             const id = ++request;
             const img = new Image();
             img.onload = function () {
-                if (id !== request) return; // une image plus récente a été demandée
+                if (id !== request) return;
                 const next = layers[1 - front];
                 next.style.backgroundImage = 'url("' + src(i) + '")';
                 next.classList.add("active");
@@ -170,14 +181,14 @@
         show(1);
         startTimer();
 
-        // Clic sur l'image (hors carte) : image suivante
+        // Clic sur le fond (hors carte) : image suivante
         document.addEventListener("click", function (e) {
             if (e.target.closest(".card")) return;
             nextImage();
-            startTimer(); // relance le compte à rebours après un clic
+            startTimer();
         });
 
-        // Passage téléphone / ordinateur (rotation, redimensionnement)
+        // Passage téléphone / ordinateur
         mobile.addEventListener("change", function () {
             index = 1;
             show(1);
