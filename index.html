@@ -120,13 +120,18 @@
                 left: 0;
                 width: 128px;
                 height: 128px;
-                margin: -120px 0 0 -7px;   /* -Y puis -X de la pointe */
+                margin: -89px 0 0 -44px;   /* -Y puis -X de la pointe (x 44, y 89) */
                 background: url("crayon.png") no-repeat;
                 filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.06));   /* même ombre que la carte */
                 pointer-events: none;      /* les clics passent à travers */
                 opacity: 0;                /* invisible jusqu'au premier mouvement */
                 z-index: 100;
                 will-change: transform;
+            }
+
+            /* Seconde image pendant le clic */
+            .crayon.clic {
+                background-image: url("crayon-clic.png");
             }
 
             /* Le curseur n'est masqué que si crayon.png est bien chargé */
@@ -231,19 +236,35 @@
         const crayon = document.querySelector(".crayon");
 
         if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+            // Masque le curseur seulement si crayon.png est bien chargé
             const test = new Image();
             test.onload = function () {
                 document.documentElement.classList.add("has-crayon");
             };
             test.src = "crayon.png";
 
+            // Précharge l'image de clic pour éviter un clignotement
+            let clicPret = false;
+            const testClic = new Image();
+            testClic.onload = function () { clicPret = true; };
+            testClic.src = "crayon-clic.png";
+
             document.addEventListener("mousemove", function (e) {
                 crayon.style.transform = "translate(" + e.clientX + "px," + e.clientY + "px)";
                 crayon.style.opacity = 1;
             });
 
+            document.addEventListener("mousedown", function () {
+                if (clicPret) crayon.classList.add("clic");
+            });
+
+            document.addEventListener("mouseup", function () {
+                crayon.classList.remove("clic");
+            });
+
             document.documentElement.addEventListener("mouseleave", function () {
                 crayon.style.opacity = 0;
+                crayon.classList.remove("clic");
             });
         }
     </script>
