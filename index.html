@@ -20,6 +20,12 @@
             cursor: pointer; /* le fond est cliquable */
         }
 
+        /* Empêche la sélection de texte pendant le tracé */
+        html.calque-on body {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
         /* Diaporama de fond */
         .bg {
             position: fixed;
@@ -43,6 +49,8 @@
 
         /* Carte "papier calque", en haut à gauche */
         .card {
+            position: relative;
+            z-index: 10;               /* reste au-dessus du calque */
             display: inline-block;
             margin: 30px;
             padding: 28px 36px;
@@ -55,7 +63,7 @@
             /* Gris 233 231 232 à 80 % + grain fin de papier */
             background:
                 url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.4  0 0 0 0 0.4  0 0 0 0 0.4  0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
-                rgba(248, 247, 247, 0.8);
+                rgba(233, 231, 232, 0.8);
 
             /* Léger flou de ce qui est derrière, comme du calque */
             -webkit-backdrop-filter: blur(4px);
@@ -107,12 +115,55 @@
             cursor: pointer;
         }
 
-        /* Crayon à la place de la souris (ordinateur uniquement) */
+        /* Calque, tracé et crayon (ordinateur uniquement) */
+        .calque,
+        .trace-canvas,
         .crayon {
             display: none;
         }
 
         @media (hover: hover) and (pointer: fine) {
+
+            /* Papier calque : marge de 100 px autour, flou réduit */
+            .calque {
+                display: block;
+                position: fixed;
+                inset: 100px;              /* marge de 100 px (à garder = MARGIN dans le script) */
+                z-index: 5;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.6s ease;
+                background:
+                    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.4  0 0 0 0 0.4  0 0 0 0 0.4  0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+                    rgba(233, 231, 232, 0.8);
+                -webkit-backdrop-filter: blur(1.5px);
+                backdrop-filter: blur(1.5px);   /* flou réduit */
+                border: 1px solid rgba(255, 255, 255, 0.55);
+                box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+            }
+
+            .calque.on {
+                opacity: 1;
+            }
+
+            /* Tracé : même zone que le calque */
+            .trace-canvas {
+                display: block;
+                position: fixed;
+                inset: 100px;              /* même marge que le calque */
+                width: calc(100% - 200px);
+                height: calc(100% - 200px);
+                z-index: 6;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.6s ease;
+            }
+
+            .trace-canvas.on {
+                opacity: 1;
+            }
+
+            /* Crayon à la place de la souris */
             .crayon {
                 display: block;
                 position: fixed;
@@ -123,8 +174,8 @@
                 margin: -89px 0 0 -44px;   /* -Y puis -X de la pointe (x 44, y 89) */
                 background: url("crayon.png") no-repeat;
                 filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.06));   /* même ombre que la carte */
-                pointer-events: none;      /* les clics passent à travers */
-                opacity: 0;                /* invisible jusqu'au premier mouvement */
+                pointer-events: none;
+                opacity: 0;
                 z-index: 100;
                 will-change: transform;
             }
@@ -151,6 +202,8 @@
         <div class="slide"></div>
     </div>
 
+    <div class="calque"></div>
+    <canvas class="trace-canvas"></canvas>
     <div class="crayon"></div>
 
     <div class="card">
@@ -174,6 +227,8 @@
     </div>
 
     <script>
+        let aTrace = false;   // vrai juste après un clic prolongé (bloque le changement d'image)
+
         /* ---------- Diaporama ---------- */
         const TOTAL = 10;     // nombre d'images
         const DELAY = 6000;   // temps entre deux images (millisecondes)
@@ -219,8 +274,9 @@
         show(1);
         startTimer();
 
-        // Clic sur le fond (hors carte) : image suivante
+        // Clic simple sur le fond (hors carte) : image suivante
         document.addEventListener("click", function (e) {
+            if (aTrace) return;                      // pas de changement après un clic prolongé
             if (e.target.closest(".card")) return;
             nextImage();
             startTimer();
@@ -232,10 +288,13 @@
             show(1);
         });
 
-        /* ---------- Crayon à la place de la souris ---------- */
+        /* ---------- Crayon, calque et tracé (ordinateur) ---------- */
         const crayon = document.querySelector(".crayon");
+        const calque = document.querySelector(".calque");
+        const canvas = document.querySelector(".trace-canvas");
 
         if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+
             // Masque le curseur seulement si crayon.png est bien chargé
             const test = new Image();
             test.onload = function () {
@@ -249,22 +308,127 @@
             testClic.onload = function () { clicPret = true; };
             testClic.src = "crayon-clic.png";
 
+            /* --- Réglages du tracé --- */
+            const MARGIN = 100;          // marge autour du calque (px), à garder = CSS
+            const HOLD = 250;            // durée du clic avant l'apparition du calque (ms)
+            const KEEP = DELAY;          // durée de conservation du dessin après le relâchement (ms)
+            const INK = "#1a1a1a";       // couleur du trait
+            const WIDTH = 1.5;           // épaisseur du trait (px), fin comme un Rotring
+
+            const ctx = canvas.getContext("2d");
+            let pos = { x: 0, y: 0 };    // dernière position de la souris (écran)
+            let pressTimer = null;
+            let fadeTimer = null;
+            let clearTimer = null;
+            let longPress = false;
+            let calqueVisible = false;   // un calque (avec ou sans dessin) est affiché
+            let dernier = null;
+
+            function ajusterCanvas() {
+                const r = window.devicePixelRatio || 1;
+                canvas.width = Math.max(1, (window.innerWidth - 2 * MARGIN)) * r;
+                canvas.height = Math.max(1, (window.innerHeight - 2 * MARGIN)) * r;
+                ctx.setTransform(r, 0, 0, r, 0, 0);
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+            }
+            ajusterCanvas();
+            window.addEventListener("resize", ajusterCanvas);   // un redimensionnement efface le dessin
+
+            function effacerCanvas() {
+                ctx.save();
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.restore();
+            }
+
+            // Position écran -> position dans le canvas
+            function pt(p) {
+                return { x: p.x - MARGIN, y: p.y - MARGIN };
+            }
+
+            function debutCalque() {
+                longPress = true;
+                clearTimeout(fadeTimer);     // annule l'effacement prévu : le dessin est conservé
+                clearTimeout(clearTimer);
+
+                if (!calqueVisible) {        // nouveau calque : feuille vierge
+                    effacerCanvas();
+                    calqueVisible = true;
+                }
+                calque.classList.add("on");
+                canvas.classList.add("on");
+                document.documentElement.classList.add("calque-on");
+                clearInterval(timer);        // le diaporama se met en pause pendant le tracé
+
+                dernier = { x: pos.x, y: pos.y };
+                const c = pt(pos);
+                ctx.fillStyle = INK;
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, WIDTH / 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            function effacerTout() {
+                calque.classList.remove("on");
+                canvas.classList.remove("on");
+                clearTimer = setTimeout(function () {
+                    effacerCanvas();
+                    calqueVisible = false;
+                }, 700);                     // après la fin du fondu
+            }
+
+            function finCalque() {
+                clearTimeout(pressTimer);
+                if (!longPress) return;
+                longPress = false;
+
+                // Bloque le changement d'image provoqué par le relâchement
+                aTrace = true;
+                setTimeout(function () { aTrace = false; }, 50);
+
+                document.documentElement.classList.remove("calque-on");
+                startTimer();                                    // le diaporama reprend
+                fadeTimer = setTimeout(effacerTout, KEEP);       // le dessin disparaît à la prochaine slide
+            }
+
+            document.addEventListener("mousedown", function (e) {
+                if (e.button !== 0) return;
+                if (clicPret) crayon.classList.add("clic");
+                if (e.target.closest(".card")) return;   // pas de tracé depuis la carte
+                pos = { x: e.clientX, y: e.clientY };
+                clearTimeout(pressTimer);
+                pressTimer = setTimeout(debutCalque, HOLD);
+            });
+
             document.addEventListener("mousemove", function (e) {
                 crayon.style.transform = "translate(" + e.clientX + "px," + e.clientY + "px)";
                 crayon.style.opacity = 1;
-            });
+                pos = { x: e.clientX, y: e.clientY };
 
-            document.addEventListener("mousedown", function () {
-                if (clicPret) crayon.classList.add("clic");
+                if (!longPress) return;
+                const a = pt(dernier);
+                const b = pt(pos);
+                const milieu = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+                ctx.strokeStyle = INK;
+                ctx.lineWidth = WIDTH;
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.quadraticCurveTo(a.x, a.y, milieu.x, milieu.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+                dernier = { x: pos.x, y: pos.y };
             });
 
             document.addEventListener("mouseup", function () {
                 crayon.classList.remove("clic");
+                finCalque();
             });
 
             document.documentElement.addEventListener("mouseleave", function () {
                 crayon.style.opacity = 0;
                 crayon.classList.remove("clic");
+                finCalque();
             });
         }
     </script>
